@@ -1,0 +1,45 @@
+#!/usr/bin/env python2
+
+'''
+Description:    Class to download ukmo data
+Author:         Ronald van Haren, NLeSC (r.vanharen@esciencecenter.nl)
+Created:
+Last Modified:
+License:        Apache 2.0
+'''
+
+import configargparse
+import os
+import sys
+from download_synop.ukmo import *
+
+if __name__ == "__main__":
+    # define argument menu
+    description = 'Combine csv files weather underground in one output file'
+    parser = configargparse.ArgumentParser(description=description)
+    parser.add('-c', '--my-config', required=False, is_config_file=True,
+               help='config file path')
+    # fill argument groups
+    parser.add('--USER_NAME', required=True, help='user postgres database',
+               env_var='USER_NAME')
+    parser.add('--USER_PASSWORD', help='user postgres database',
+               env_var='USER_PASSWORD') 
+    parser.add_argument('-o', '--outputdir',
+                        help='Data output directory (defaults to CWD)',
+                        default=os.getcwd(), required=False)
+    parser.add('--TMP_DIR',
+               help='Directory where intermediate files are saved, ' +
+               'defaults to DOWNLOAD_DIR',
+               env_var='TMP_DIR', required=False)
+    parser.add_argument('-y', '--year', help='Year to download data forD',
+                        type=int, required=True)
+    parser.add_argument('-k', '--keep', help='Keep downloaded files',
+                        required=False, action='store_true')
+    # extract user entered arguments
+    opts = parser.parse_args()
+    if not opts.TMP_DIR:
+      # default TMP_DIR to outputdir
+      opts.TMP_DIR = os.path.expanduser(opts.outputdir)
+    # Downloading csv data
+    download_ukmo_data(opts.USER_NAME, opts.USER_PASSWORD, opts.year,
+                       opts.outputdir)
