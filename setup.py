@@ -22,7 +22,7 @@ setup(
     keywords = "",
     url = "https://github.com/ERA-URBAN/download_synop",
     packages=['download_synop'],
-    scripts=['download_synop/scripts/download_ukmo'],
+    scripts=['download_synop/scripts/download_ukmo', 'download_synop/scripts/download_dwd'],
     long_description=read('README.md'),
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
