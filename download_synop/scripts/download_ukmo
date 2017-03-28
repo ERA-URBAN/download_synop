@@ -12,6 +12,7 @@ import configargparse
 import os
 import sys
 from download_synop.ukmo import *
+from download_synop.ncdf import ukmo_ncdf
 
 if __name__ == "__main__":
     # define argument menu
@@ -41,5 +42,7 @@ if __name__ == "__main__":
       # default TMP_DIR to outputdir
       opts.TMP_DIR = os.path.expanduser(opts.outputdir)
     # Downloading csv data
-    download_ukmo_data(opts.USER_NAME, opts.USER_PASSWORD, opts.year,
-                       opts.outputdir)
+    ukmo = download_ukmo_data(opts.USER_NAME, opts.USER_PASSWORD, opts.year,
+                              opts.outputdir)
+    ukmo_ncdf(ukmo.headerfile, ukmo.stationfile, ukmo.outputfile,
+              opts.outputdir)
