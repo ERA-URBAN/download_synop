@@ -22,7 +22,8 @@ setup(
     keywords = "",
     url = "https://github.com/ERA-URBAN/download_synop",
     packages=['download_synop'],
-    scripts=['download_synop/scripts/download_ukmo', 'download_synop/scripts/download_dwd'],
+    scripts=['download_synop/scripts/download_ukmo', 'download_synop/scripts/download_dwd',
+             'download_synop/scripts/download_knmi'],
     long_description=read('README.md'),
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",

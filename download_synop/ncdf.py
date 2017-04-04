@@ -7,6 +7,7 @@ from numpy import where as npwhere
 from numpy import array as nparray
 from numpy import zeros
 from numpy import nan as npnan
+from numpy import concatenate as npconcatenate
 import collections
 import time
 import os
@@ -14,6 +15,7 @@ import errno
 from netCDF4 import Dataset as ncdf
 from netCDF4 import date2num
 from datetime import datetime
+import csv
 
 class ukmo_ncdf:
   def __init__(self, headername, liststations, filename, outputdir):
@@ -240,6 +242,116 @@ class dwd_ncdf:
           #self.fill_attribute_data()
 
   def fill_attribute_data(self):
+    '''
+    Function that fills the attribute data of the netcdf file
+    '''
+    if variable == 'DD':
+      values.units = 'degrees'
+      values.standard_name = 'wind direction'
+      values.long_name = 'mean wind direction during the 10-minute period preceding the time of observation (990=variable)'
+    elif variable == 'TemperatureF':
+      values.units = 'F'
+      values.standard_name = 'air_temperature'
+      values.long_name = 'air temperature'
+    else:
+      pass
+
+
+class knmi_ncdf:
+  def __init__(self, stationid, lat, lon, elevation, data, outputdir):
+    self.outputdir = outputdir
+    if not os.path.isfile('output' + str(stationid) + '.nc'):
+      self.write_combined_data_netcdf(data, stationid, lon, lat, elevation)
+
+  def write_combined_data_netcdf(self, data, stationid, lon, lat, elevation):
+    '''
+    description
+    '''
+    from netCDF4 import Dataset as ncdf
+    import netcdftime
+    from datetime import datetime
+    from dateutil import tz
+    from numpy import zeros
+    from numpy import nan as npnan
+    from numpy import dtype
+    import time
+    ncfile = ncdf(os.path.join(self.outputdir,
+                               'output'+"".join(str(stationid).split())+'.nc'
+                               ), 'w', format='NETCDF4')
+    # description of the file
+    ncfile.description = 'KNMI ' + str(stationid)
+    ncfile.history = 'Created ' + time.ctime(time.time())
+    # create time dimension
+    timevar = ncfile.createDimension('time', None)
+    # create lon/lat dimensions
+    lonvar = ncfile.createDimension('longitude', 1)
+    latvar = ncfile.createDimension('latitude', 1)
+    # elevation
+    elvar = ncfile.createDimension('elevation', 1)
+    # inititalize time axis
+    timeaxis = [int(round(date2num(data['datetime'][idx],
+                                   units='minutes since 2010-01-01 00:00:00',
+                                   calendar='gregorian'))) for idx in range(
+                                     0,len(data['datetime']))]
+    # netcdf time variable UTC
+    timevar = ncfile.createVariable('time', 'i4', ('time',),
+                                    zlib=True)
+    timevar[:] = timeaxis
+    timevar.units = 'minutes since 2010-01-01 00:00:00'
+    timevar.calendar = 'gregorian'
+    timevar.standard_name = 'time'
+    timevar.long_name = 'time in UTC'
+
+    # lon/lat variables
+    lonvar = ncfile.createVariable('longitude',dtype('float32').char,('longitude',))
+    lonvar.units = 'degrees_east'
+    lonvar.axis = 'X'
+    lonvar.standard_name = 'longitude'
+    lonvar[:] = lon
+    latvar = ncfile.createVariable('latitude',dtype('float32').char,('latitude',))
+    latvar.units = 'degrees_north'
+    latvar.axis = 'Y'
+    latvar.standard_name = 'latitude'
+    latvar[:] = lat
+
+    # elevation variable
+    elvar = ncfile.createVariable('elevation', dtype('float32').char, ('elevation',))
+    elvar.units = 'meter'
+    elvar.axis = 'Z'
+    elvar.standard_name = 'elevation'
+    elvar[:] = elevation
+    
+    # create other variables in netcdf file
+    for variable in data.keys():
+      if variable not in ['YYYMMDD', 'Time', '<br>', 'datetime', '# STN', None]:
+        # add variables in netcdf file
+        # convert strings to npnan if array contains numbers
+        if True in [is_number(c)
+          for c in data[variable]]:
+            data[variable] = [npnan if isinstance(
+              fitem(c), str) else fitem(c) for c in data[
+                variable]]
+        # check if variable is a string
+        if not isinstance(data[variable][1], str):
+            # fill variable
+            variableName = variable
+            values = ncfile.createVariable(
+              variableName, type(data[variable][1]),
+              ('time',), zlib=True, fill_value=-999)
+        else:
+          # string variables cannot have fill_value
+          values = ncfile.createVariable(
+            variable, type(data[variable][1]),
+            ('time',), zlib=True)
+        try:  # fill variable
+          values[:] = data[variable][:]
+        except IndexError:
+          # for strings the syntax is slightly different
+          values = data[variable][:]
+          #self.fill_attribute_data()
+
+
+  def fill_attribute_data():
     '''
     Function that fills the attribute data of the netcdf file
     '''
