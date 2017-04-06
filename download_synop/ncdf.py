@@ -7,6 +7,7 @@ from numpy import where as npwhere
 from numpy import array as nparray
 from numpy import zeros
 from numpy import nan as npnan
+from numpy import ma
 from numpy import concatenate as npconcatenate
 import collections
 import time
@@ -16,6 +17,7 @@ from netCDF4 import Dataset as ncdf
 from netCDF4 import date2num
 from datetime import datetime
 import csv
+import pandas as pd
 
 class ukmo_ncdf:
   def __init__(self, headername, liststations, filename, outputdir):
@@ -113,27 +115,38 @@ class ukmo_ncdf:
         # convert strings to npnan if array contains numbers
         if True in [is_number(c)
           for c in data[variable]]:
-            data[variable] = [npnan if isinstance(
+            data[variable] = [-999 if isinstance(
               fitem(c), str) else fitem(c) for c in data[
                 variable]]
+        data[variable] = ma.masked_array(data[variable], mask=pd.isnull(data[variable]))
         # check if variable is a string
         if not isinstance(data[variable][0], str):
-            # fill variable
-            variableName = variable
-            values = ncfile.createVariable(
-              variableName, type(data[variable][0]),
-              ('time',), zlib=True, fill_value=-999)
+            try:
+              # fill variable
+              variableName = variable
+              values = ncfile.createVariable(
+                variableName, type(data[variable][0]),
+                ('time',), zlib=True, fill_value=-999)
+            except TypeError:
+              pass
         else:
           # string variables cannot have fill_value
-          values = ncfile.createVariable(
-            variable, type(data[variable][0]),
-            ('time',), zlib=True)
+          try:
+            values = ncfile.createVariable(
+              variable, type(data[variable][0]),
+              ('time',), zlib=True)
+          except TypeError:
+            pass
         try:  # fill variable
           values[:] = data[variable][:]
         except IndexError:
           # for strings the syntax is slightly different
           values = data[variable][:]
           #self.fill_attribute_data()
+        except UnboundLocalError:
+          pass
+        except TypeError:
+          values = data[variable][:]
     ncfile.close()
 
   def fill_attribute_data(self):
@@ -219,27 +232,39 @@ class dwd_ncdf:
         # convert strings to npnan if array contains numbers
         if True in [is_number(c)
           for c in data[variable]]:
-            data[variable] = [npnan if isinstance(
+            data[variable] = [-999 if isinstance(
               fitem(c), str) else fitem(c) for c in data[
                 variable]]
+        data[variable] = ma.masked_array(data[variable], mask=pd.isnull(data[variable]))
         # check if variable is a string
-        if not isinstance(data[variable][1], str):
-            # fill variable
-            variableName = variable
-            values = ncfile.createVariable(
-              variableName, type(data[variable][1]),
-              ('time',), zlib=True, fill_value=-999)
+        if not isinstance(data[variable][0], str):
+            try:
+              # fill variable
+              variableName = variable
+              values = ncfile.createVariable(
+                variableName, type(data[variable][0]),
+                ('time',), zlib=True, fill_value=-999)
+            except TypeError:
+              pass
         else:
           # string variables cannot have fill_value
-          values = ncfile.createVariable(
-            variable, type(data[variable][1]),
-            ('time',), zlib=True)
+          try:
+            values = ncfile.createVariable(
+              variable, type(data[variable][0]),
+              ('time',), zlib=True)
+          except TypeError:
+            pass
         try:  # fill variable
           values[:] = data[variable][:]
         except IndexError:
           # for strings the syntax is slightly different
           values = data[variable][:]
           #self.fill_attribute_data()
+        except UnboundLocalError:
+          pass
+        except TypeError:
+          values = data[variable][:]
+    ncfile.close()
 
   def fill_attribute_data(self):
     '''
@@ -301,7 +326,6 @@ class knmi_ncdf:
     timevar.calendar = 'gregorian'
     timevar.standard_name = 'time'
     timevar.long_name = 'time in UTC'
-
     # lon/lat variables
     lonvar = ncfile.createVariable('longitude',dtype('float32').char,('longitude',))
     lonvar.units = 'degrees_east'
@@ -313,14 +337,12 @@ class knmi_ncdf:
     latvar.axis = 'Y'
     latvar.standard_name = 'latitude'
     latvar[:] = lat
-
     # elevation variable
     elvar = ncfile.createVariable('elevation', dtype('float32').char, ('elevation',))
     elvar.units = 'meter'
     elvar.axis = 'Z'
     elvar.standard_name = 'elevation'
     elvar[:] = elevation
-    
     # create other variables in netcdf file
     for variable in data.keys():
       if variable not in ['YYYMMDD', 'Time', '<br>', 'datetime', '# STN', None]:
@@ -328,28 +350,39 @@ class knmi_ncdf:
         # convert strings to npnan if array contains numbers
         if True in [is_number(c)
           for c in data[variable]]:
-            data[variable] = [npnan if isinstance(
+            data[variable] = [-999 if isinstance(
               fitem(c), str) else fitem(c) for c in data[
                 variable]]
+        data[variable] = ma.masked_array(data[variable], mask=pd.isnull(data[variable]))
         # check if variable is a string
-        if not isinstance(data[variable][1], str):
-            # fill variable
-            variableName = variable
-            values = ncfile.createVariable(
-              variableName, type(data[variable][1]),
-              ('time',), zlib=True, fill_value=-999)
+        if not isinstance(data[variable][0], str):
+            try:
+              # fill variable
+              variableName = variable
+              values = ncfile.createVariable(
+                variableName, type(data[variable][0]),
+                ('time',), zlib=True, fill_value=-999)
+            except TypeError:
+              pass
         else:
           # string variables cannot have fill_value
-          values = ncfile.createVariable(
-            variable, type(data[variable][1]),
-            ('time',), zlib=True)
+          try:
+            values = ncfile.createVariable(
+              variable, type(data[variable][0]),
+              ('time',), zlib=True)
+          except TypeError:
+            pass
         try:  # fill variable
           values[:] = data[variable][:]
         except IndexError:
           # for strings the syntax is slightly different
           values = data[variable][:]
           #self.fill_attribute_data()
-
+        except UnboundLocalError:
+          pass
+        except TypeError:
+          values = data[variable][:]
+    ncfile.close()
 
   def fill_attribute_data():
     '''
