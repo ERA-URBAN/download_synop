@@ -97,7 +97,7 @@ class ukmo_ncdf:
     latvar.units = 'degrees_north'
     latvar.axis = 'Y'
     latvar.standard_name = 'latitude'
-    # elevation 
+    # elevation
     elevar = ncfile.createVariable('elevation', 'i4', ('elevation',))
     elevar.units = 'meter'
     elevar.standard_name = 'elevation'
@@ -115,7 +115,7 @@ class ukmo_ncdf:
         # convert strings to npnan if array contains numbers
         if True in [is_number(c)
           for c in data[variable]]:
-            data[variable] = [-999 if isinstance(
+            data[variable] = [npnan if isinstance(
               fitem(c), str) else fitem(c) for c in data[
                 variable]]
         data[variable] = ma.masked_array(data[variable], mask=pd.isnull(data[variable]))
@@ -128,7 +128,7 @@ class ukmo_ncdf:
                 variableName, type(data[variable][0]),
                 ('time',), zlib=True, fill_value=-999)
             except TypeError:
-              pass
+              continue
         else:
           # string variables cannot have fill_value
           try:
@@ -136,7 +136,7 @@ class ukmo_ncdf:
               variable, type(data[variable][0]),
               ('time',), zlib=True)
           except TypeError:
-            pass
+            continue
         try:  # fill variable
           values[:] = data[variable][:]
         except IndexError:
@@ -144,7 +144,7 @@ class ukmo_ncdf:
           values = data[variable][:]
           #self.fill_attribute_data()
         except UnboundLocalError:
-          pass
+          continue
         except TypeError:
           values = data[variable][:]
     ncfile.close()
@@ -224,7 +224,7 @@ class dwd_ncdf:
     elevation_var.axis = 'Z'
     elevation_var.standard_name = 'height'
     elevation_var[:] = data['elevation']
-    
+
     # create other variables in netcdf file
     for variable in data.keys():
       if variable not in ['time', 'longitude', 'latitude', 'elevation', None]:
@@ -350,7 +350,7 @@ class knmi_ncdf:
         # convert strings to npnan if array contains numbers
         if True in [is_number(c)
           for c in data[variable]]:
-            data[variable] = [-999 if isinstance(
+            data[variable] = [npnan if isinstance(
               fitem(c), str) else fitem(c) for c in data[
                 variable]]
         data[variable] = ma.masked_array(data[variable], mask=pd.isnull(data[variable]))
@@ -363,7 +363,7 @@ class knmi_ncdf:
                 variableName, type(data[variable][0]),
                 ('time',), zlib=True, fill_value=-999)
             except TypeError:
-              pass
+              continue
         else:
           # string variables cannot have fill_value
           try:
@@ -371,7 +371,7 @@ class knmi_ncdf:
               variable, type(data[variable][0]),
               ('time',), zlib=True)
           except TypeError:
-            pass
+            continue
         try:  # fill variable
           values[:] = data[variable][:]
         except IndexError:
@@ -379,7 +379,7 @@ class knmi_ncdf:
           values = data[variable][:]
           #self.fill_attribute_data()
         except UnboundLocalError:
-          pass
+          continue
         except TypeError:
           values = data[variable][:]
     ncfile.close()
