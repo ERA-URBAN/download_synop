@@ -120,23 +120,26 @@ class ukmo_ncdf:
                 variable]]
         data[variable] = ma.masked_array(data[variable], mask=pd.isnull(data[variable]))
         # check if variable is a string
-        if not isinstance(data[variable][~data[variable].mask][0], str):
+        try:
+          if not isinstance(data[variable][~data[variable].mask][0], str):
+              try:
+                # fill variable
+                variableName = variable
+                values = ncfile.createVariable(
+                  variableName, type(data[variable][~data[variable].mask][0]),
+                  ('time',), zlib=True, fill_value=-999)
+              except TypeError:
+                continue
+          else:
+            # string variables cannot have fill_value
             try:
-              # fill variable
-              variableName = variable
               values = ncfile.createVariable(
-                variableName, type(data[variable][~data[variable].mask][0]),
-                ('time',), zlib=True, fill_value=-999)
+                variable, type(data[variable][~data[variable].mask][0]),
+                ('time',), zlib=True)
             except TypeError:
               continue
-        else:
-          # string variables cannot have fill_value
-          try:
-            values = ncfile.createVariable(
-              variable, type(data[variable][~data[variable].mask][0]),
-              ('time',), zlib=True)
-          except TypeError:
-            continue
+        except IndexError:
+          continue
         try:  # fill variable
           values[:] = data[variable][:]
         except IndexError:
@@ -236,24 +239,27 @@ class dwd_ncdf:
               fitem(c), str) else fitem(c) for c in data[
                 variable]]
         data[variable] = ma.masked_array(data[variable], mask=pd.isnull(data[variable]))
-        # check if variable is a string
-        if not isinstance(data[variable][~data[variable].mask][0], str):
+        try:
+          # check if variable is a string
+          if not isinstance(data[variable][~data[variable].mask][0], str):
+              try:
+                # fill variable
+                variableName = variable
+                values = ncfile.createVariable(
+                  variableName, type(data[variable][~data[variable].mask][0]),
+                  ('time',), zlib=True, fill_value=-999)
+              except TypeError:
+                continue
+          else:
+            # string variables cannot have fill_value
             try:
-              # fill variable
-              variableName = variable
               values = ncfile.createVariable(
-                variableName, type(data[variable][~data[variable].mask][0]),
-                ('time',), zlib=True, fill_value=-999)
+                variable, type(data[variable][~data[variable].mask][0]),
+                ('time',), zlib=True)
             except TypeError:
               continue
-        else:
-          # string variables cannot have fill_value
-          try:
-            values = ncfile.createVariable(
-              variable, type(data[variable][~data[variable].mask][0]),
-              ('time',), zlib=True)
-          except TypeError:
-            continue
+        except IndexError:
+          continue
         try:  # fill variable
           values[:] = data[variable][:]
         except IndexError:
@@ -354,24 +360,27 @@ class knmi_ncdf:
               fitem(c), str) else fitem(c) for c in data[
                 variable]]
         data[variable] = ma.masked_array(data[variable], mask=pd.isnull(data[variable]))
-        # check if variable is a string
-        if not isinstance(data[variable][~data[variable].mask][0], str):
+        try:
+          # check if variable is a string
+          if not isinstance(data[variable][~data[variable].mask][0], str):
+              try:
+                # fill variable
+                variableName = variable
+                values = ncfile.createVariable(
+                  variableName, type(data[variable][~data[variable].mask][0]),
+                  ('time',), zlib=True, fill_value=-999)
+              except TypeError:
+                continue
+          else:
+            # string variables cannot have fill_value
             try:
-              # fill variable
-              variableName = variable
               values = ncfile.createVariable(
-                variableName, type(data[variable][~data[variable].mask][0]),
-                ('time',), zlib=True, fill_value=-999)
+                variable, type(data[variable][~data[variable].mask][0]),
+                ('time',), zlib=True)
             except TypeError:
               continue
-        else:
-          # string variables cannot have fill_value
-          try:
-            values = ncfile.createVariable(
-              variable, type(data[variable][~data[variable].mask][0]),
-              ('time',), zlib=True)
-          except TypeError:
-            continue
+        except IndexError:
+          continue
         try:  # fill variable
           values[:] = data[variable][:]
         except IndexError:
