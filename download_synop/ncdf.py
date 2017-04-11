@@ -120,12 +120,12 @@ class ukmo_ncdf:
                 variable]]
         data[variable] = ma.masked_array(data[variable], mask=pd.isnull(data[variable]))
         # check if variable is a string
-        if not isinstance(data[variable][0], str):
+        if not isinstance(data[variable][~data[variable].mask][0], str):
             try:
               # fill variable
               variableName = variable
               values = ncfile.createVariable(
-                variableName, type(data[variable][0]),
+                variableName, type(data[variable][~data[variable].mask][0]),
                 ('time',), zlib=True, fill_value=-999)
             except TypeError:
               continue
@@ -133,7 +133,7 @@ class ukmo_ncdf:
           # string variables cannot have fill_value
           try:
             values = ncfile.createVariable(
-              variable, type(data[variable][0]),
+              variable, type(data[variable][~data[variable].mask][0]),
               ('time',), zlib=True)
           except TypeError:
             continue
@@ -232,28 +232,28 @@ class dwd_ncdf:
         # convert strings to npnan if array contains numbers
         if True in [is_number(c)
           for c in data[variable]]:
-            data[variable] = [-999 if isinstance(
+            data[variable] = [npnan if isinstance(
               fitem(c), str) else fitem(c) for c in data[
                 variable]]
         data[variable] = ma.masked_array(data[variable], mask=pd.isnull(data[variable]))
         # check if variable is a string
-        if not isinstance(data[variable][0], str):
+        if not isinstance(data[variable][~data[variable].mask][0], str):
             try:
               # fill variable
               variableName = variable
               values = ncfile.createVariable(
-                variableName, type(data[variable][0]),
+                variableName, type(data[variable][~data[variable].mask][0]),
                 ('time',), zlib=True, fill_value=-999)
             except TypeError:
-              pass
+              continue
         else:
           # string variables cannot have fill_value
           try:
             values = ncfile.createVariable(
-              variable, type(data[variable][0]),
+              variable, type(data[variable][~data[variable].mask][0]),
               ('time',), zlib=True)
           except TypeError:
-            pass
+            continue
         try:  # fill variable
           values[:] = data[variable][:]
         except IndexError:
@@ -261,7 +261,7 @@ class dwd_ncdf:
           values = data[variable][:]
           #self.fill_attribute_data()
         except UnboundLocalError:
-          pass
+          continue
         except TypeError:
           values = data[variable][:]
     ncfile.close()
@@ -355,12 +355,12 @@ class knmi_ncdf:
                 variable]]
         data[variable] = ma.masked_array(data[variable], mask=pd.isnull(data[variable]))
         # check if variable is a string
-        if not isinstance(data[variable][0], str):
+        if not isinstance(data[variable][~data[variable].mask][0], str):
             try:
               # fill variable
               variableName = variable
               values = ncfile.createVariable(
-                variableName, type(data[variable][0]),
+                variableName, type(data[variable][~data[variable].mask][0]),
                 ('time',), zlib=True, fill_value=-999)
             except TypeError:
               continue
@@ -368,7 +368,7 @@ class knmi_ncdf:
           # string variables cannot have fill_value
           try:
             values = ncfile.createVariable(
-              variable, type(data[variable][0]),
+              variable, type(data[variable][~data[variable].mask][0]),
               ('time',), zlib=True)
           except TypeError:
             continue
