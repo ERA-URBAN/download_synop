@@ -240,6 +240,10 @@ class load_knmi_data:
             # FF: wind speed
             self.csvdata[variable] = [round(0.1 * item, 1) if item != -999 else
                                 item for item in self.csvdata[variable]]
+        # multiply pressure to convert to Pascal
+        self.csvdata['P'] = [round(float(10 * item), 3) if
+                             item != -999 else item for item in
+                             self.csvdata['P']]
         # SWD
         self.csvdata['Q'] = [round(float(10000 * item)/3600, 5) if
                              item != -999 else item for item in

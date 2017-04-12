@@ -226,7 +226,7 @@ class read_dwd:
       except KeyError:
         pressure_reduced[idx] = -999
       try:
-        pressure_station[idx] = 100 * dict_of_dicts[c]['LUFTDRUCK_STATIONSHOEHE']
+        pressure_station[idx] = dict_of_dicts[c]['LUFTDRUCK_STATIONSHOEHE']
       except KeyError:
         pressure_station[idx] = -999
       try:
@@ -254,8 +254,13 @@ class read_dwd:
       except KeyError:
         temperature[idx] = -999
     d = {}
-    d['pressure_reduced'] = pressure_reduced
-    d['pressure_station'] = pressure_station
+    # convert pressure to Pascal
+    d['pressure_reduced'] = [round(float(100 * item), 1) if
+                             item != -999 else item for item in
+                             pressure_reduced]
+    d['pressure_station'] = [round(float(100 * item), 1) if
+                             item != -999 else item for item in
+                             pressure_station]
     d['rltvh'] = rltvh
     d['winddir'] = winddir
     d['windspeed'] = windspeed

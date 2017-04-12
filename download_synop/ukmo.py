@@ -165,12 +165,19 @@ class read_ukmo:
         # create datetime object
         self.csvdata['datetime'] = [datetime.strptime(
             str(item), ('%Y-%m-%d %H:%M')) for item in self.csvdata['OB_TIME']]
+        # convert pressure to Pascal
+        self.csvdata['MSL_PRESSURE'] = [round(float(100 * item), 3) if
+                             item != -999 else item for item in
+                             self.csvdata['MSL_PRESSURE']]
+        self.csvdata['STN_PRES'] = [round(float(100 * item), 3) if
+                             item != -999 else item for item in
+                             self.csvdata['STN_PRES']]
 
     def return_station_value(self, col, b):
         '''
         return dictionary value for a particular id
         '''
         try:
-            return self.stations_dict[col][self.stations_dict[3].index(b.strip())]
+            return self.stations_dict[col][self.stations_dict[3].index(b.strip().lstrip('0'))]
         except ValueError:
             return -99999
