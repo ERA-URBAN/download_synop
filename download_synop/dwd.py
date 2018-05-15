@@ -93,7 +93,10 @@ class read_dwd:
       for sfile in station_files:
         # load data in list of dicts
         print (sfile)
-        sdict, mdict = self.load_file(sfile)
+	try:
+          sdict, mdict = self.load_file(sfile)
+        except Exception:
+          continue
         if sdict == None:
           continue
         station_dicts = hstack((station_dicts, sdict))
@@ -155,6 +158,9 @@ class read_dwd:
                   in filename ]
     metadata_files = [ filename for filename in zipf.namelist() if
                       'Stationsmetadaten' in filename ]
+    metadata_files = [ filename for filename in zipf.namelist() if
+                      ('Metadaten_Geographie' in filename and
+                       filename.lower().endswith('.txt')) ]
     station_dict = self.read_data(zipf.open(data_files[0]))
     meta_dict = pandas.read_csv(zipf.open(metadata_files[0]), engine='c', sep=';',
                                 skipinitialspace=True,
@@ -222,35 +228,35 @@ class read_dwd:
     time_axis = time_axis[~np.isnan(time_axis)]
     for idx, c in enumerate(time_axis):
       try:
-        pressure_reduced[idx] = dict_of_dicts[c]['LUFTDRUCK_REDUZIERT']
+        pressure_reduced[idx] = dict_of_dicts[c]['P0']
       except KeyError:
         pressure_reduced[idx] = -999
       try:
-        pressure_station[idx] = dict_of_dicts[c]['LUFTDRUCK_STATIONSHOEHE']
+        pressure_station[idx] = dict_of_dicts[c]['P']
       except KeyError:
         pressure_station[idx] = -999
       try:
-        rltvh[idx] = dict_of_dicts[c]['REL_FEUCHTE']
+        rltvh[idx] = dict_of_dicts[c]['RF_TU']
       except KeyError:
         rltvh[idx] = -999
       try:
-        winddir[idx] = dict_of_dicts[c]['WINDRICHTUNG']
+        winddir[idx] = dict_of_dicts[c]['D']
       except KeyError:
         winddir[idx] = -999
       try:
-        windspeed[idx] = dict_of_dicts[c]['WINDGESCHWINDIGKEIT']
+        windspeed[idx] = dict_of_dicts[c]['F']
       except KeyError:
         windspeed[idx] = -999
       try:
-        clouds[idx] = dict_of_dicts[c]['GESAMT_BEDECKUNGSGRAD']
+        clouds[idx] = dict_of_dicts[c]['V_N']
       except KeyError:
         clouds[idx] = -999
       try:
-        precipitation[idx] = dict_of_dicts[c]['NIEDERSCHLAGSHOEHE']
+        precipitation[idx] = dict_of_dicts[c]['R1']
       except KeyError:
         precipitation[idx] = -999
       try:
-        temperature[idx] = dict_of_dicts[c]['LUFTTEMPERATUR']
+        temperature[idx] = dict_of_dicts[c]['TT_TU']
       except KeyError:
         temperature[idx] = -999
     d = {}
@@ -314,8 +320,8 @@ class read_dwd:
       if not tmp:
         continue  # no measurements found for time period
       tmp_out = self.list_of_dict_to_dict_of_lists(tmp)
-      tmp_out['longitude'] = metadata['Geogr.Breite'][idd]
-      tmp_out['latitude'] = metadata['Geogr.Laenge'][idd]
+      tmp_out['latitude'] = metadata['Geogr.Breite'][idd]
+      tmp_out['longitude'] = metadata['Geogr.Laenge'][idd]
       tmp_out['elevation'] = metadata['Stationshoehe'][idd]
       data = hstack((data,tmp_out))
     return data
